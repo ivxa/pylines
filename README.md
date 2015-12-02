@@ -1,6 +1,6 @@
 # pylines
 
-This code computes the **streamlines** of **2D Relativistic Hydrodynamical simulations** (RHD). The expected input file is a Fortran 90 binary file containing the physical variables from the hydrodynamical simulation (e.g., the output from Ratpenat hydrodynamical code). We also provide the **branch `pylines-txt`** which accepts an arbitrary text file as an input file. The output files are the plots and the text files, one file per current line containing the physical variables along the line.
+This Python package computes the **streamlines** of **2D Relativistic Hydrodynamical simulations** (RHD). The expected input file is a Fortran 90 binary file containing the physical variables from the hydrodynamical simulation (e.g., the output from Ratpenat hydrodynamical code). We also provide the **branch `pylines-txt`** which accepts an arbitrary text file as an input file. The output files are the plots and the text files, one file per current line containing the physical variables along the line.
 
 Usage:
 
