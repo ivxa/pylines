@@ -8,7 +8,7 @@ import sys
 from setup import params
 from plots import plots
 from compute_lines import compute_lines
-import read_fortran as rf
+import read_dat as rd
 import test_rhd as test_rhd
 
 
@@ -41,16 +41,10 @@ def set_params():
 
     resamp = params['resamp']
     print '- Resampling value: {}'.format(resamp)
+    print "WARNING: with resamp = 1: disable surface test: look for two '1==1' in save_one_file_per_line() at compute_lines.py"
 
     nlines = params['nlines']
     print '- Number of lines: {}'.format(nlines)
-    if input_file != 'JET' and nlines != -1:
-        print "WARNING: nlines only implemented for 'JET' simulations"
-
-    CGS_units = params['CGS_units']
-    print '- CGS units: {}'.format(CGS_units)
-    if not (CGS_units in [0, 1]):
-        raise RuntimeError('Wrong input for CGS_units parameter')
 
     fB0 = params['fB0']
     print '- B0 internal energy fraction: {}'.format(fB0)
@@ -91,8 +85,8 @@ def set_params():
     if not (plot_profiles in [0, 1]):
         raise RuntimeError('Wrong input for plot_profiles parameter')
 
-    return input_file, output_file, testing_rhd, binary_output_file, tstep, itemax,\
-        resamp, nlines, CGS_units, fB0, tr0, int_method, int_test, make_plots,\
+    return input_file, output_file, testing_rhd, binary_output_file, tstep,\
+        itemax, resamp, nlines, fB0, tr0, int_method, int_test, make_plots,\
         plot_maps, plot_lines, plot_profiles, plots_path
 
 
@@ -126,15 +120,14 @@ def prepare_data(input_file, nlines, testing_rhd):
 
     c = 3e10
 
-    (nx, ny, dens, vx, vy, eps, xl, yl, lx, ly, gammaad, rho0, a, xp,
-     yp, rin, rins, tracer, time1,
-     rhowp, uwp, vwp, rhowi, uwi, vwi, xs, ys) = rf.read(input_file)
+    (nx, ny, dens, vx, vy, eps, xl, yl, lx, ly, gammaad,
+     tracer) = rd.read(input_file)
 
     if testing_rhd == 1:
         print '\nTesting the RHD simulation:'
         if input_file == 'PULSAR':
             (i_sw, j_sw) = (xs*nx/lx+2, ly*ny/ly-2)
-            #(i_pw, j_pw) = (xp*nx/lx+2, (yp+rin)*ny/ly+2)
+#            (i_pw, j_pw) = (xp*nx/lx+2, (yp+rin)*ny/ly+2)
             (i_pw, j_pw) = (xp*nx/lx+2, (yp-rin)*ny/ly-2)
 
             test_rhd.pulsar(i_pw, j_pw, i_sw, j_sw,  a, rho0, xp, yp, xs, ys,
@@ -160,14 +153,15 @@ def prepare_data(input_file, nlines, testing_rhd):
         print '\nLines not computed\nSTOP\n'
         sys.exit(1)
 
-    x, y, xr, yr, dx, dy, div = rf.build_grid(xl, yl, nx, ny, lx, ly, vx, vy)
+    x, y, xr, yr, dx, dy, div = rd.build_grid(xl, yl, nx, ny, lx, ly,
+                                              vx, vy, c)
 
-    injec, sf0 = rf.injection(nx, ny, x, y, xp, yp, rin, input_file,
+    injec, sf0 = rd.injection(nx, ny, x, y, input_file,
                               nlines, xl, xr)
 
     return nx, ny, x, y, xl, yl, xr, yr, dx, dy, vx, vy,\
-        dens, eps, injec, sf0, lx, ly, a, rho0, c, gammaad,\
-        div, tracer, time1
+        dens, eps, injec, sf0, lx, ly, c, gammaad,\
+        div, tracer
 
 
 def time_step(dx, dy, vx, vy, tstep):
@@ -183,21 +177,14 @@ def time_step(dx, dy, vx, vy, tstep):
     return tstep, ds
 
 
-def print_info(nx, ny, lx, ly, dx, dy, tstep, a, c, rho0, time1):
+def print_info(nx, ny, lx, ly, dx, dy, tstep, c):
     """Print some information on the screen"""
 
     print '\nSimulation info:'
     print '- Grid dimensions: {:} x {:} cells'.format(nx, ny)
-    print '- Grid size: {:.0f} x {:.0f} [a]'.format(lx, ly)
-    print '- Cell size: {:} x {:} [a]'.format(dx[1], dy[1])
+    print '- Grid size: {:.2e} x {:.2e} [cm]'.format(lx, ly)
+    print '- Cell size: {:.2e} x {:.2e} [cm]'.format(dx[1], dy[1])
     print '- Time step size: {:.2f} [t0]'.format(tstep)
-    print '- Simulated time: {:.2f} [t0]'.format(time1)
-    print '- Simulated time: {:.2e} [s]'.format(time1*a/c)
-    print '- Code units of time t0={:.2f} [s]'.format(a/c)
-    print '- Code units of distance a={:.0e} [cm]'.format(a)
-    print '- Code units of density rho0={} [g/cm^3]'.format(rho0)
-    print '- Code units of velocity c={:.0e} [cm/s]'.format(c)
-    print '- Code units of specific internal energy eps0=c^2'
     print '- Equation of state pres=(gammaad-1)*dens*eps'
     return
 
@@ -220,25 +207,25 @@ def main():
         make_folder('plots/')
         make_folder('lines/')
 
-        (input_file, output_file, testing_rhd, binary_output_file, tstep, itemax,
-         resamp, nlines, CGS_units, fB0, tr0, int_method, int_test, make_plots,
+        (input_file, output_file, testing_rhd, binary_output_file, tstep,
+         itemax, resamp, nlines, fB0, tr0, int_method, int_test, make_plots,
          plot_maps, plot_lines, plot_profiles,
          plots_path) = set_params()
 
-        (nx, ny, x, y, xl, yl, xr, yr, dx, dy, vx, vy, dens, eps,
-         injec, sf0, lx, ly, a, rho0, c, gammaad,
-         div, tracer, time1) = prepare_data(input_file, nlines, testing_rhd)
+        (nx, ny, x, y, xl, yl, xr, yr, dx, dy, vx, vy,
+         dens, eps, injec, sf0, lx, ly, c, gammaad,
+         div, tracer) = prepare_data(input_file, nlines, testing_rhd)
 
         tstep, ds = time_step(dx, dy, vx, vy, tstep)
 
-        print_info(nx, ny, lx, ly, dx, dy, tstep, a, c, rho0, time1)
+        print_info(nx, ny, lx, ly, dx, dy, tstep, c)
 
         all_lines = compute_lines(x, y, xl, yl, xr, yr,
                                   vx, vy, dens, eps, tracer,
                                   injec, sf0, tstep,
                                   nx, ny, lx, ly, dx, dy, gammaad, div,
                                   itemax, resamp, int_method, int_test,
-                                  CGS_units, c, rho0, a, fB0, tr0,
+                                  c, fB0, tr0,
                                   input_file, output_file)
 
         if binary_output_file == 1:
@@ -246,8 +233,8 @@ def main():
 
         if make_plots == 1:
             plots(x, y, dens, eps, vx, vy, div, plots_path, all_lines,
-                  plot_maps, plot_lines, plot_profiles, CGS_units, lx, ly,
-                  a, rho0, c, gammaad, tracer)
+                  plot_maps, plot_lines, plot_profiles, lx, ly,
+                  c, gammaad, tracer)
 
         return 0
 

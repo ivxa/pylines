@@ -29,7 +29,7 @@ def autocrop_img(filename):
         raise RuntimeError('Unable to tight layout. Increase pad_inches?')
 
 
-def tracer_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
+def tracer_plot(x, y, z, vx, vy, plots_path, all_lines):
     """Plot the tracer map of the RHD simulation"""
 
     # Set-up
@@ -51,34 +51,26 @@ def tracer_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
     np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-    else:
-        ax.set_xlabel(r'$r~{\rm [cm]}$')
-        ax.set_ylabel(r'$z~{\rm [cm]}$')
+    ax.set_xlabel(r'$r~{\rm [cm]}$')
+    ax.set_ylabel(r'$z~{\rm [cm]}$')
     xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
 
-    im = ax.pcolormesh(xv, yv, z, cmap=cm.binary, vmin=0.01, vmax=0.99,
-                       rasterized=True)
+    im = ax.pcolormesh(xv, yv, z, cmap=cm.jet, norm=LogNorm(vmin=0.001, vmax=1.0),
+                       rasterized=True)#cm.binary
 
+    #print x.min(), x.max(), x.shape
+    #print y.min(), y.max(), y.shape
     ax.set_xlim((x.min(), x.max()))
     ax.set_ylim((y.min(), y.max()))
 
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size=0.1, pad=0.07)
     cb0 = fig.colorbar(im, cax=cax)
-    if CGS_units == 0:
-        cb0.set_label(r'${\rm Tracer}$', labelpad=5)
-    else:
-        cb0.set_label(r'${\rm Tracer}$', labelpad=5)
+    cb0.set_label(r'${\rm Tracer}$', labelpad=5)
 
-    if CGS_units == 0:
-        minorLocator = MultipleLocator(5)
-    else:
-        minorLocator = MultipleLocator(0.1e15)
-    ax.xaxis.set_minor_locator(minorLocator)
-    ax.yaxis.set_minor_locator(minorLocator)
+    #minorLocator = MultipleLocator(0.1e15)
+    #ax.xaxis.set_minor_locator(minorLocator)
+    #ax.yaxis.set_minor_locator(minorLocator)
 
     from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
     class FixedOrderFormatter(ScalarFormatter):
@@ -94,31 +86,18 @@ def tracer_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
 
     numbering_mod = 5
     offset_y = 0.0
-    if input_file == 'JET':
+    if 1 == 0:
         ax.xaxis.set_major_formatter(FixedOrderFormatter(15))
         numbering_mod = 10
         offset_y = 0.01e15
-        if CGS_units == 0:
-            minorLocator = MultipleLocator(5)
-        else:
-            minorLocator = MultipleLocator(0.1e15)
-        ax.xaxis.set_minor_locator(minorLocator)
-        ax.yaxis.set_minor_locator(minorLocator)
-    elif input_file == 'PULSAR':
-        ax.xaxis.set_major_formatter(FixedOrderFormatter(12))
-        ax.yaxis.set_major_formatter(FixedOrderFormatter(12))
-        numbering = 1
-        numbering_mod = 10
-        offset_y = 0.0
-        if CGS_units == 0:
-            minorLocator = MultipleLocator(5)
-        else:
-            minorLocator = MultipleLocator(0.1e12)
+        minorLocator = MultipleLocator(0.1e15)
         ax.xaxis.set_minor_locator(minorLocator)
         ax.yaxis.set_minor_locator(minorLocator)
 
+    ax.xaxis.set_major_locator(MultipleLocator(1e11))
     from matplotlib.ticker import AutoMinorLocator
     ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     fig.savefig(plots_path+'tracer_map.eps',
                 bbox_inches='tight', pad_inches=0.02, dpi=300)
@@ -138,75 +117,19 @@ def tracer_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
                 if l != 0 and t==0:
                     nonzero_sel[l] = 0
             if numbering == 1:
-                if (ll+1)%numbering_mod == 0 or ll == 0:
+                if ((ll+1)%numbering_mod == 0 or ll == 0) and ll != 49:
                     ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='b')
             ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
 
         fig.savefig(plots_path+'tracer_map_with_lines.eps',
-                    bbox_inches='tight', pad_inches=0.07, dpi=300)
+                    bbox_inches='tight', pad_inches=0.09, dpi=300)
         autocrop_img(plots_path+'tracer_map_with_lines.eps')
 
     plt.close(fig)
     return
 
 
-def pressure_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
-    """Plot the pressure map of the RHD simulation"""
-
-    print 'Pressure map'
-
-    np.seterr(divide='ignore', invalid='ignore')
-    fig = plt.figure()
-    ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-    else:
-        ax.set_xlabel(r'$r~[cm]$')
-        ax.set_ylabel(r'$z~[cm]$')
-    xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
-
-    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                   cmap=cm.jet, rasterized=True)
-
-    ax.set_xlim((x.min(), x.max()))
-    ax.set_ylim((y.min(), y.max()))
-
-    cb0 = fig.colorbar(im)
-    if CGS_units == 0:
-        cb0.set_label(r'${\rm Pressure}~[\rho_0 c^2]$', labelpad=1)
-    else:
-        cb0.set_label(r'${\rm Pressure}~[erg/cm^3]$', labelpad=1)
-
-
-    from matplotlib.ticker import AutoMinorLocator
-    ax.xaxis.set_minor_locator(AutoMinorLocator())
-
-    fig.savefig(plots_path+'pressure_map.eps',
-                bbox_inches='tight', pad_inches=0.07, dpi=300)
-
-    for ll, line in enumerate(all_lines):
-        x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
-
-        x = np.array(x)
-        y = np.array(y)
-        nonzero_sel = np.ones_like(time, dtype=bool)
-        for l, t in enumerate(time):
-            if l != 0 and t==0:
-                nonzero_sel[l] = 0
-
-        if (ll+1)%5 == 0 or ll == 0:
-            ax.annotate(str(ll+1), xy=(x[0], y[0]), xycoords='data', size=6)
-        ax.plot(x[nonzero_sel], y[nonzero_sel])
-
-    fig.savefig(plots_path+'pressure_map_with_lines.eps',
-                bbox_inches='tight', pad_inches=0.02, dpi=300)
-
-    plt.close(fig)
-    return
-
-
-def beta_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
+def beta_plot(x, y, z, vx, vy, plots_path, all_lines):
     """Plot the beta map of the RHD simulation"""
 
     print 'Beta map'
@@ -214,12 +137,8 @@ def beta_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
     np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-    else:
-        ax.set_xlabel(r'$r~[cm]$')
-        ax.set_ylabel(r'$z~[cm]$')
+    ax.set_xlabel(r'$r~[cm]$')
+    ax.set_ylabel(r'$z~[cm]$')
     xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
 
     im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
@@ -229,17 +148,16 @@ def beta_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
     ax.set_ylim((y.min(), y.max()))
 
     cb0 = fig.colorbar(im)
-    if CGS_units == 0:
-        cb0.set_label(r'${\rm \beta}$', labelpad=1)
-    else:
-        cb0.set_label(r'${\rm \beta}$', labelpad=1)
+    cb0.set_label(r'${\rm \beta}$', labelpad=1)
 
-
+    ax.xaxis.set_major_locator(MultipleLocator(1e11))
     from matplotlib.ticker import AutoMinorLocator
     ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     fig.savefig(plots_path+'beta_map.eps',
-                bbox_inches='tight', pad_inches=0.07, dpi=300)
+                bbox_inches='tight', pad_inches=0.09, dpi=300)
+    autocrop_img(plots_path+'beta_map.eps')
 
     for ll, line in enumerate(all_lines):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
@@ -256,13 +174,14 @@ def beta_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         ax.plot(x[nonzero_sel], y[nonzero_sel])
 
     fig.savefig(plots_path+'beta_map_with_lines.eps',
-                bbox_inches='tight', pad_inches=0.07, dpi=300)
+                bbox_inches='tight', pad_inches=0.09, dpi=300)
+    autocrop_img(plots_path+'beta_map_with_lines.eps')
 
     plt.close(fig)
     return
 
 
-def eps_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
+def eps_plot(x, y, z, vx, vy, plots_path, all_lines):
     """Plot the internal energy map of the RHD simulation"""
 
     print 'Specific internal energy map'
@@ -270,12 +189,8 @@ def eps_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
     np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-    else:
-        ax.set_xlabel(r'$r~[cm]$')
-        ax.set_ylabel(r'$z~[cm]$')
+    ax.set_xlabel(r'$r~[cm]$')
+    ax.set_ylabel(r'$z~[cm]$')
     xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
 
     im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
@@ -285,17 +200,16 @@ def eps_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
     ax.set_ylim((y.min(), y.max()))
 
     cb0 = fig.colorbar(im)
-    if CGS_units == 0:
-        cb0.set_label(r'${\rm Specific~internal~energy}~[c^2]$', labelpad=1)
-    else:
-        cb0.set_label(r'${\rm Specific~internal~energy}~[erg/g]$', labelpad=1)
+    cb0.set_label(r'${\rm Specific~internal~energy}~[erg/g]$', labelpad=1)
 
-
+    ax.xaxis.set_major_locator(MultipleLocator(1e11))
     from matplotlib.ticker import AutoMinorLocator
     ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     fig.savefig(plots_path+'eps_map.eps',
-                bbox_inches='tight', pad_inches=0.07, dpi=300)
+                bbox_inches='tight', pad_inches=0.09, dpi=300)
+    autocrop_img(plots_path+'eps_map.eps')
 
     for ll, line in enumerate(all_lines):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
@@ -312,13 +226,14 @@ def eps_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         ax.plot(x[nonzero_sel], y[nonzero_sel])
 
     fig.savefig(plots_path+'eps_map_with_lines.eps',
-                bbox_inches='tight', pad_inches=0.07, dpi=300)
+                bbox_inches='tight', pad_inches=0.09, dpi=300)
+    autocrop_img(plots_path+'eps_map_with_lines.eps')
 
     plt.close(fig)
     return
 
 
-def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
+def density_plot(x, y, z, vx, vy, plots_path, all_lines):
     """Plot the density map of the RHD simulation"""
 
     # Set-up
@@ -340,12 +255,8 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
     np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-    else:
-        ax.set_xlabel(r'$r~{\rm [cm]}$')
-        ax.set_ylabel(r'$z~{\rm [cm]}$')
+    ax.set_xlabel(r'$r~{\rm [cm]}$')
+    ax.set_ylabel(r'$z~{\rm [cm]}$')
     xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
 
     im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
@@ -358,10 +269,7 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size=0.1, pad=0.07)
         cb0 = plt.colorbar(im, cax=cax)
-        if CGS_units == 0:
-            cb0.set_label(r'$\rho~{\rm[\rho_0]}$', labelpad=5)
-        else:
-            cb0.set_label(r'$\rho~{\rm[g/cm^3]}$', labelpad=5)
+        cb0.set_label(r'$\rho~{\rm[g/cm^3]}$', labelpad=5)
     else:
         from numpy import ma
         M = np.ones(vx.shape, dtype='bool')
@@ -389,17 +297,12 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         cax2 = fig.add_axes(cax_vel)
         cb = fig.colorbar(Q,cax=cax2,ticks=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
         cb.set_label(r'$\beta$',labelpad=9.5)
-        if CGS_units == 0:
-            cb0.set_label(r'$\rho~{\rm[\rho_0]}$', labelpad=6)
-        else:
-            cb0.set_label(r'$\rho~{\rm[g/cm^3]}$', labelpad=6)
+        cb0.set_label(r'$\rho~{\rm[g/cm^3]}$', labelpad=6)
 
-    if CGS_units == 0:
-        minorLocator = MultipleLocator(5)
-    else:
-        minorLocator = MultipleLocator(0.1e15)
-    ax.xaxis.set_minor_locator(minorLocator)
-    ax.yaxis.set_minor_locator(minorLocator)
+    ax.xaxis.set_major_locator(MultipleLocator(1e11))
+    from matplotlib.ticker import AutoMinorLocator
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
     class FixedOrderFormatter(ScalarFormatter):
@@ -415,32 +318,13 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
 
     numbering_mod = 5
     offset_y = 0.0
-    if input_file == 'JET':
+    if 1 == 0:
         ax.xaxis.set_major_formatter(FixedOrderFormatter(15))
         numbering_mod = 10
         offset_y = 0.01e15
-        if CGS_units == 0:
-            minorLocator = MultipleLocator(5)
-        else:
-            minorLocator = MultipleLocator(0.1e15)
+        minorLocator = MultipleLocator(0.1e15)
         ax.xaxis.set_minor_locator(minorLocator)
         ax.yaxis.set_minor_locator(minorLocator)
-    elif input_file == 'PULSAR':
-        ax.xaxis.set_major_formatter(FixedOrderFormatter(12))
-        ax.yaxis.set_major_formatter(FixedOrderFormatter(12))
-        numbering = 1
-        numbering_mod = 10
-        offset_y = 0.0
-        if CGS_units == 0:
-            minorLocator = MultipleLocator(5)
-        else:
-            minorLocator = MultipleLocator(0.1e12)
-        ax.xaxis.set_minor_locator(minorLocator)
-        ax.yaxis.set_minor_locator(minorLocator)
-
-    if x.max() >= 1.5e15:
-        from matplotlib.ticker import AutoMinorLocator
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
 
     fig.savefig(plots_path+'density_map.eps',
                 bbox_inches='tight', pad_inches=0.02, dpi=300)
@@ -460,20 +344,20 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
                 if l != 0 and t==0:
                     nonzero_sel[l] = 0
             if numbering == 1:
-                if (ll+1)%numbering_mod == 0 or ll == 0:
+                if ((ll+1)%numbering_mod == 0 or ll == 0) and ll != 49:
                     ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='w')
             ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
 
         fig.savefig(plots_path+'density_map_with_lines.eps',
-                    bbox_inches='tight', pad_inches=0.07, dpi=300)
+                    bbox_inches='tight', pad_inches=0.09, dpi=300)
         autocrop_img(plots_path+'density_map_with_lines.eps')
 
     plt.close(fig)
     return
 
 
-def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
-    """Plot the Doppler Boosting map of the RHD simulation"""
+def pressure_plot(x, y, z, vx, vy, plots_path, all_lines):
+    """Plot the density map of the RHD simulation"""
 
     # Set-up
     from setup import params
@@ -489,72 +373,18 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
     countj0 = 16
     #
 
-    print 'Doppler Boosting map'
+    print 'Pressure map'
 
     np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-    else:
-        ax.set_xlabel(r'$r~{\rm [cm]}$')
-        ax.set_ylabel(r'$z~{\rm [cm]}$')
+    ax.set_xlabel(r'$r~{\rm [cm]}$')
+    ax.set_ylabel(r'$z~{\rm [cm]}$')
     xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
 
-    from setup import params
-    try:
-        nick_name = params['nick_name']
-    except:
-        nick_name = []
-        pass
+    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
+                   cmap=cm.jet, rasterized=True)
 
-    if params['input_file'] == 'JET':
-        if x.max() >= 1.5e15:
-            if nick_name == 'brac':
-                if fsuff == '_gamma_times_beta_':
-                    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e-1, vmax=2.5e0),
-                                   cmap=cm.jet, rasterized=True)
-                elif fsuff == '_factor_':
-                    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e0, vmax=4e2),
-                                   cmap=cm.jet, rasterized=True)
-            else:
-                if fsuff == '_gamma_times_beta_':
-                    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=7e-2, vmax=3e0),
-                                   cmap=cm.jet, rasterized=True)
-                elif fsuff == '_factor_':
-                    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=2e0, vmax=5e2),
-                                   cmap=cm.jet, rasterized=True)
-        else:
-            if fsuff == '_gamma_times_beta_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e-1, vmax=4e0),
-                               cmap=cm.jet, rasterized=True)
-            elif fsuff == '_factor_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=0.95e0, vmax=1.5e3),#5e3
-                               cmap=cm.jet, rasterized=True)
-    else:
-        if nick_name == 'steady':
-            if fsuff == '_gamma_times_beta_':
-                #im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)
-            elif fsuff == '_factor_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)
-        elif nick_name == 'clump1':
-            if fsuff == '_gamma_times_beta_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)
-            elif fsuff == '_factor_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)
-        elif nick_name == 'clump5':
-            if fsuff == '_gamma_times_beta_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)
-            elif fsuff == '_factor_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)
     ax.set_xlim((x.min(), x.max()))
     ax.set_ylim((y.min(), y.max()))
 
@@ -562,10 +392,7 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size=0.1, pad=0.07)
         cb0 = plt.colorbar(im, cax=cax)
-        if fsuff == '_gamma_times_beta_':
-            cb0.set_label(r'$\Gamma~\beta$', labelpad=5)
-        elif fsuff == '_factor_':
-            cb0.set_label(r'$\delta^4$', labelpad=5)
+        cb0.set_label(r'${\rm P}~[erg/cm^3]$', labelpad=1)
     else:
         from numpy import ma
         M = np.ones(vx.shape, dtype='bool')
@@ -593,17 +420,12 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
         cax2 = fig.add_axes(cax_vel)
         cb = fig.colorbar(Q,cax=cax2,ticks=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9])
         cb.set_label(r'$\beta$',labelpad=9.5)
-        if CGS_units == 0:
-            cb0.set_label(r'$\rho~{\rm[\rho_0]}$', labelpad=6)
-        else:
-            cb0.set_label(r'$\rho~{\rm[g/cm^3]}$', labelpad=6)
+        cb0.set_label(r'${\rm Pressure}~[erg/cm^3]$', labelpad=6)
 
-    if CGS_units == 0:
-        minorLocator = MultipleLocator(5)
-    else:
-        minorLocator = MultipleLocator(0.1e15)
-    ax.xaxis.set_minor_locator(minorLocator)
-    ax.yaxis.set_minor_locator(minorLocator)
+    ax.xaxis.set_major_locator(MultipleLocator(1e11))
+    from matplotlib.ticker import AutoMinorLocator
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
 
     from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
     class FixedOrderFormatter(ScalarFormatter):
@@ -619,33 +441,123 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
 
     numbering_mod = 5
     offset_y = 0.0
-    if input_file == 'JET':
+    if 1 == 0:
         ax.xaxis.set_major_formatter(FixedOrderFormatter(15))
         numbering_mod = 10
         offset_y = 0.01e15
-        if CGS_units == 0:
-            minorLocator = MultipleLocator(5)
-        else:
-            minorLocator = MultipleLocator(0.1e15)
+        minorLocator = MultipleLocator(0.1e15)
         ax.xaxis.set_minor_locator(minorLocator)
         ax.yaxis.set_minor_locator(minorLocator)
-    elif input_file == 'PULSAR':
-        ax.xaxis.set_major_formatter(FixedOrderFormatter(12))
-        ax.yaxis.set_major_formatter(FixedOrderFormatter(12))
-        numbering = 1
+
+    fig.savefig(plots_path+'pressure_map.eps',
+                bbox_inches='tight', pad_inches=0.02, dpi=300)
+    autocrop_img(plots_path+'pressure_map.eps')
+
+    if vel_vectors == 0:
+#        c = ['r','b','c','y','k']
+        c = ['0.1','0.25','0.4','0.55','0.7']
+        c += 500*c
+        for ll, line in enumerate(all_lines):
+            x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
+
+            x = np.array(x)
+            y = np.array(y)
+            nonzero_sel = np.ones_like(time, dtype=bool)
+            for l, t in enumerate(time):
+                if l != 0 and t==0:
+                    nonzero_sel[l] = 0
+            if numbering == 1:
+                if ((ll+1)%numbering_mod == 0 or ll == 0) and ll != 49:
+                    ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='w')
+            ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
+
+        fig.savefig(plots_path+'pressure_map_with_lines.eps',
+                    bbox_inches='tight', pad_inches=0.09, dpi=300)
+        autocrop_img(plots_path+'pressure_map_with_lines.eps')
+
+    plt.close(fig)
+    return
+
+def doppler_plot(x, y, z, vx, vy, plots_path, all_lines, fsuff):
+    """Plot the Doppler Boosting map of the RHD simulation"""
+
+    # Set-up
+    from setup import params
+    input_file = params['input_file']
+    numbering = 1
+    vel_vectors = 0
+    cax_z = [0.855, 0.510, 0.03, 0.390]
+    cax_vel = [0.855, 0.100, 0.03, 0.390]
+    nmask = 20
+    qscale = 0.1
+    width0 = 0.005
+    counti0 = 11
+    countj0 = 16
+    #
+
+    if fsuff == '_gamma_times_beta_':
+        print 'Gamma times beta map'
+    elif fsuff == '_factor_':
+        print 'Doppler Boosting map'
+
+    np.seterr(divide='ignore', invalid='ignore')
+    fig = plt.figure()
+    ax = fig.add_subplot(111, aspect='equal')
+    ax.set_xlabel(r'$r~{\rm [cm]}$')
+    ax.set_ylabel(r'$z~{\rm [cm]}$')
+    xv, yv = np.meshgrid(x, y, sparse=False, indexing='ij')
+
+    from setup import params
+    try:
+        nick_name = params['nick_name']
+    except:
+        nick_name = []
+        pass
+
+    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
+                       cmap=cm.jet, rasterized=True)
+
+    ax.set_xlim((x.min(), x.max()))
+    ax.set_ylim((y.min(), y.max()))
+
+    ax.xaxis.set_major_locator(MultipleLocator(1e11))
+    from matplotlib.ticker import AutoMinorLocator
+    ax.xaxis.set_minor_locator(AutoMinorLocator())
+    ax.yaxis.set_minor_locator(AutoMinorLocator())
+
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size=0.1, pad=0.07)
+    cb0 = plt.colorbar(im, cax=cax)
+    if fsuff == '_gamma_times_beta_':
+        cb0.set_label(r'$\Gamma~\beta$', labelpad=5)
+    elif fsuff == '_factor_':
+        cb0.set_label(r'$\delta^4$', labelpad=5)
+
+    #minorLocator = MultipleLocator(0.1e15)
+    #ax.xaxis.set_minor_locator(minorLocator)
+    #ax.yaxis.set_minor_locator(minorLocator)
+
+    from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
+    class FixedOrderFormatter(ScalarFormatter):
+        """Formats axis ticks using scientific notation with a constant order of
+        magnitude"""
+        def __init__(self, order_of_mag=0, useOffset=True, useMathText=False):
+            self._order_of_mag = order_of_mag
+            ScalarFormatter.__init__(self, useOffset=useOffset,
+                                     useMathText=useMathText)
+        def _set_orderOfMagnitude(self, range):
+            """Over-riding this to avoid having orderOfMagnitude reset elsewhere"""
+            self.orderOfMagnitude = self._order_of_mag
+
+    numbering_mod = 5
+    offset_y = 0.0
+    if 1 == 0:
+        ax.xaxis.set_major_formatter(FixedOrderFormatter(15))
         numbering_mod = 10
-        offset_y = 0.0
-        if CGS_units == 0:
-            minorLocator = MultipleLocator(5)
-        else:
-            minorLocator = MultipleLocator(0.1e12)
+        offset_y = 0.01e15
+        minorLocator = MultipleLocator(0.1e15)
         ax.xaxis.set_minor_locator(minorLocator)
         ax.yaxis.set_minor_locator(minorLocator)
-
-
-    if x.max() >= 1.5e15:
-        from matplotlib.ticker import AutoMinorLocator
-        ax.xaxis.set_minor_locator(AutoMinorLocator())
 
     fig.savefig(plots_path+'doppler_'+fsuff+'map.eps',
                 bbox_inches='tight', pad_inches=0.02, dpi=300)
@@ -665,34 +577,29 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
                 if l != 0 and t==0:
                     nonzero_sel[l] = 0
             if numbering == 1:
-                if (ll+1)%numbering_mod == 0 or ll == 0:
+                if ((ll+1)%numbering_mod == 0 or ll == 0) and ll != 49:
                     ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='w')
             ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
 
         fig.savefig(plots_path+'doppler_'+fsuff+'map_with_lines.eps',
-                    bbox_inches='tight', pad_inches=0.07, dpi=300)
+                    bbox_inches='tight', pad_inches=0.09, dpi=300)
         autocrop_img(plots_path+'doppler_'+fsuff+'map_with_lines.eps')
 
     plt.close(fig)
     return
 
 
-def lines_plot(plots_path, all_lines, CGS_units, lx, ly, a):
+def lines_plot(plots_path, all_lines, lx, ly):
     """Plot the computed current lines"""
 
     print '\nPlotting lines...'
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
-    if CGS_units == 0:
-        ax.set_xlabel(r'$r~[a]$')
-        ax.set_ylabel(r'$z~[a]$')
-        ax.set_xlim((0, lx))
-        ax.set_ylim((0, ly))
-    else:
-        ax.set_xlabel(r'$r~[cm]$')
-        ax.set_ylabel(r'$z~[cm]$')
-        ax.set_xlim((0, lx*a))
-        ax.set_ylim((0, ly*a))
+    ax.set_xlabel(r'$r~[cm]$')
+    ax.set_ylabel(r'$z~[cm]$')
+    ax.set_xlim((0, lx))
+    ax.set_ylim((0, ly))
+
     fig2 = plt.figure()
     ax2 = fig2.add_subplot(111, aspect='equal')
     ax2.set_xlabel(r'$i$')
@@ -721,30 +628,26 @@ def lines_plot(plots_path, all_lines, CGS_units, lx, ly, a):
             ax2.annotate(str(ll+1), xy=(i[0], j[0]), xycoords='data', size=6)
 
     fig.savefig(plots_path+'lines_xy.eps', bbox_inches='tight',
-                pad_inches=0.07)
+                pad_inches=0.09)
     plt.close(fig)
 
     ax2.set_xlim(left=-1)
     fig2.savefig(plots_path+'lines_ij.eps', bbox_inches='tight',
-                 pad_inches=0.07)
+                 pad_inches=0.09)
     plt.close(fig2)
 
     print "Done"
     return
 
 
-def profile_plot(plots_path, all_lines, CGS_units):
+def profile_plot(plots_path, all_lines):
     """Plot the phyisical quantities a long the line"""
 
     print '\nPlotting profiles along the lines...'
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    if CGS_units == 0:
-        ax.set_xlabel(r'$t~[t_0]$')
-        ax.set_ylabel(r'${\rm Density}~[\rho_0]$')
-    else:
-        ax.set_xlabel(r'$t~[s]$')
-        ax.set_ylabel(r'${\rm Density}~[g/cm^3]$')
+    ax.set_xlabel(r'$t~[s]$')
+    ax.set_ylabel(r'${\rm Density}~[g/cm^3]$')
     ax.set_yscale('log')
 
     for line in all_lines:
@@ -768,7 +671,7 @@ def profile_plot(plots_path, all_lines, CGS_units):
 #        ax.plot(time, div)
 #    ax.set_ylim(1e-22,1e-3)
     fig.savefig(plots_path+'density_profile.eps',
-                bbox_inches='tight', pad_inches=0.07)
+                bbox_inches='tight', pad_inches=0.09)
     plt.close(fig)
 
     print "Done"
@@ -776,8 +679,8 @@ def profile_plot(plots_path, all_lines, CGS_units):
 
 
 def plots(x, y, dens, eps, vx, vy, div, plots_path, all_lines,
-          plot_maps, plot_lines, plot_profiles, CGS_units, lx, ly,
-          a, rho0, c, gammaad, tracer):
+          plot_maps, plot_lines, plot_profiles, lx, ly,
+          c, gammaad, tracer):
     """Perform the selected plots"""
 
     # GENERAL PLOT PARAMETERS
@@ -810,42 +713,30 @@ def plots(x, y, dens, eps, vx, vy, div, plots_path, all_lines,
     if not os.path.exists(plots_path):
         os.makedirs(plots_path)
 
-    beta = np.sqrt(vx**2.+vy**2.)
-    P = (gammaad-1.)*dens*eps
-    if CGS_units == 1:
-        x = np.array(x)*a
-        y = np.array(y)*a
-        dens = np.array(dens)*rho0
-        eps = np.array(eps)*c**2.
-        P = (gammaad-1.)*dens*eps
-        beta = np.sqrt(vx**2.+vy**2.)
-        vx = np.array(vx)*c
-        vy = np.array(vy)*c
-        div = np.array(div)*c/a
-        #time = np.array(time)*a/c
-
     if plot_maps == 1:
         print '\nPlotting maps...'
-###        pressure_plot(x, y, P, vx, vy, plots_path, CGS_units, all_lines)
-###        beta_plot(x, y, beta, vx, vy, plots_path, CGS_units, all_lines)
-###        eps_plot(x, y, eps, vx, vy, plots_path, CGS_units, all_lines)
+        P = (gammaad-1.)*dens*eps
+        pressure_plot(x, y, P, vx, vy, plots_path, all_lines)
 
-        tracer_plot(x, y, tracer, vx, vy, plots_path, CGS_units, all_lines)
-        density_plot(x, y, dens, vx, vy, plots_path, CGS_units, all_lines)
+        beta = np.sqrt(vx**2.+vy**2.)/c
+        #beta_plot(x, y, beta, vx, vy, plots_path, all_lines)
 
-        b = np.sqrt(vx**2.+vy**2.)/c
+        #eps_plot(x, y, eps, vx, vy, plots_path, all_lines)
+
+        density_plot(x, y, dens, vx, vy, plots_path, all_lines)
+
+        b = beta
         bx = vx/c
         by = vy/c
         g = 1./np.sqrt(1.-b**2.)
         D4 = (1./g/(1.-by))**4.
-        doppler_plot(x, y, D4, vx, vy, plots_path, CGS_units, all_lines, '_factor_')
-        doppler_plot(x, y, g*b, vx, vy, plots_path, CGS_units, all_lines, '_gamma_times_beta_')
+        doppler_plot(x, y, D4, vx, vy, plots_path, all_lines, '_factor_')
+        doppler_plot(x, y, g*b, vx, vy, plots_path, all_lines, '_gamma_times_beta_')
 
-
-
+        tracer_plot(x, y, tracer, vx, vy, plots_path, all_lines)
     if plot_lines == 1:
-        lines_plot(plots_path, all_lines, CGS_units, lx, ly, a)
+        lines_plot(plots_path, all_lines, lx, ly)
 
     if plot_profiles == 1:
-        profile_plot(plots_path, all_lines, CGS_units)
+        profile_plot(plots_path, all_lines)
     return

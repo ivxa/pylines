@@ -133,19 +133,29 @@ def save_one_file_per_line(output_file, all_lines, gammaad, c, fB0, tr0,
 
             h = np.zeros_like(time)
             h[nz] = 1.+eps[nz]/c**2.+P[nz]/dens[nz]/c**2.
-            B = np.zeros_like(time)
-            #B0 = np.sqrt(fB0*8.*np.pi*(dens[0]*h[0]*c**2.-dens[0]*c**2.-P[0]))
 
             # Energy flux equality
+            B = np.zeros_like(time)
             B0 = np.sqrt(fB0*4.*np.pi*(dens[0]*h[0]*c**2.))
+            #B0 = np.sqrt(fB0*8.*np.pi*(dens[0]*h[0]*c**2.-dens[0]*c**2.-P[0]))
             B[nz] = B0*(dens[nz]*v[0]*gamma[0]/dens[0]/v[nz]/gamma[nz])**0.5
 
             fe = np.zeros_like(time)
             fe[nz] = dens[nz]*gamma[nz]**2.*h[nz]*v[nz]#-dens[nz]*gamma[nz]*v[nz]
             sf = np.zeros_like(time)
             sf[nz] = sf0[ll]*fe[0]/fe[nz] # Energy flux conservation
+
 #            Particle flux conservation
 #            sf[nz] = sf0[ll]*(dens[0]*v[0]*gamma[0]/dens[nz]/v[nz]/gamma[nz])
+
+            if 1 == 1:
+            # For testing purposes
+                if ll == 0:
+                    y_test = y[:]
+                    sf_test = sf[:]
+                else:
+                    y_test = np.vstack((y_test, y))
+                    sf_test = np.vstack((sf_test, sf))
 
             # Save to file
             line_length = len(time)
@@ -163,6 +173,26 @@ def save_one_file_per_line(output_file, all_lines, gammaad, c, fB0, tr0,
                 f.write(str(sf[n]) + ' ')
                 f.write(str(tracer[n]))
                 f.write('\n')
+
+    if 1 == 1:
+    # For testing purposes
+        dx = 3000000000.0
+        lx = 4.5e11-dx # lx was defined accounting for a ghost column not included here
+        #print y_test.shape
+        #print sf_test.shape
+        err_surf = []
+        for i, y0 in enumerate(y_test[0, :]):
+            # "i" cell of the first line placed at y0
+            surface = []
+            if y0 == 0:
+                continue
+            for l, yl in enumerate(y_test[:,:]):
+                ind_yl_min = abs(yl-y0).argmin()
+                surface.append(sf_test[l, ind_yl_min])
+            err_surf.append(abs(sum(surface)-np.pi*lx**2.)/(np.pi*lx**2.)*100)
+            print 'Index: {:}   |   y: {:.2e}   |   Surface err: {:.2f} %'.format(str(i).zfill(3), y0, (sum(surface)-np.pi*lx**2.)/(np.pi*lx**2.)*100)
+        print '* Total surface test maximum error: {:.2f} %'.format(max(err_surf))
+        print '  WARNING: you need to tune "dx" and "lx" for each simulation at "compute_lines.py"'
     return all_lines
 
 
@@ -266,39 +296,10 @@ def tstep_test(ic, jc, ic_aux, jc_aux):
                            'Reduce the tstep parameter')
 
 
-def code_units_to_CGS(all_lines, sf0, c, rho0, a):
-    """Converts from code units to the CGS unit system."""
-
-    sf0[:, 0] = sf0[:, 0]*a**2.
-    all_lines_new = []
-    for line in all_lines:
-        x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
-
-        x = np.array(x)*a
-        y = np.array(y)*a
-        i = np.array(i)
-        j = np.array(j)
-        dens = np.array(dens)*rho0
-        eps = np.array(eps)*c**2.
-        vx = np.array(vx)*c
-        vy = np.array(vy)*c
-        div = np.array(div)*c/a
-        tracer = np.array(tracer)
-        time = np.array(time)*a/c
-
-        line_new = []
-        for l in range(len(x)):
-            line_new.append([x[l], y[l], i[l], j[l], dens[l],
-                             eps[l], vx[l], vy[l], div[l], tracer[l],
-                             time[l]])
-        all_lines_new.append(line_new)
-    return all_lines_new, sf0
-
-
 def compute_lines(x, y, xl, yl, xr, yr, vx, vy, dens, eps, tracer,
                   injec, sf0, tstep,
                   nx, ny, lx, ly, dx, dy, gammaad, div, itemax, resamp,
-                  int_method, int_test, CGS_units, c, rho0, a, fB0, tr0,
+                  int_method, int_test, c, fB0, tr0,
                   input_file, output_file):
     """Returns the current lines for a given RHD simulation"""
 
@@ -360,18 +361,12 @@ def compute_lines(x, y, xl, yl, xr, yr, vx, vy, dens, eps, tracer,
             buffer_all_lines(all_lines, line_values)
 
     if resamp != 0:
-        all_lines = resamp_line(all_lines, resamp, a, CGS_units)
-
-    if CGS_units == 1:
-        all_lines, sf0 = code_units_to_CGS(all_lines, sf0, c, rho0, a)
+        all_lines = resamp_line(all_lines, resamp)
 
     save_all_lines(output_file, all_lines)
 
-    if CGS_units == 1:
-        all_lines = save_one_file_per_line(output_file, all_lines, gammaad, c, fB0,
-                                           tr0, sf0, excluded_lines, input_file)
-    else:
-        print 'WARNING: current lines not saved. CGS unit conversion is off'
+    all_lines = save_one_file_per_line(output_file, all_lines, gammaad, c, fB0,
+                                       tr0, sf0, excluded_lines, input_file)
 
     if int_test != 0:
         print "Density difference between the two interpolation methods: " \

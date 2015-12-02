@@ -4,7 +4,7 @@
 import numpy as np
 
 
-def resamp_line(all_lines, resamp, a, CGS_units):
+def resamp_line(all_lines, resamp):
     """Downsamples the line to 'resamp' cells.
     All the lines should have the same lenght with a constant
     cell size.
@@ -59,10 +59,7 @@ def resamp_line(all_lines, resamp, a, CGS_units):
 
     # Save line lenght info
     with open('L_dL.dat', 'w') as f:
-        if CGS_units == 0:
-            f.write(str(l[-1]-dl) + ' ' + str(dl) + '\n')
-        else:
-            f.write(str((l[-1]-dl)*a) + ' ' + str(dl*a) + '\n')
+        f.write(str(l[-1]-dl) + ' ' + str(dl) + '\n')
 
     all_lines_new = []
     # Regrouping of the physical parameters in the new grid
