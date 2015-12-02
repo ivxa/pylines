@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import numpy as np
 
 
@@ -123,14 +126,14 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
                 if dis[i, j] <= rin:
                     ij += [(i, j)]
         ij = np.array(ij)
-        
+
         # Select only those at the border (only valid for an axsymmetric injector)
         ij_edge = []
         for i in range(ij[:, 0].max()+1):
             ij_edge += [(i, ij[ij[:, 0] == i][:, 1].min())]
             if ij[ij[:, 0] == i][:, 1].min() != ij[ij[:, 0] == i][:, 1].max():
                 ij_edge += [(i, ij[ij[:, 0] == i][:, 1].max())]
-        
+
         for j in ij[:, 1]:
             if (ij[ij[:, 1] == j][:, 0].max(), j) not in ij_edge:
                 ij_edge += [(ij[ij[:, 1] == j][:, 0].max(), j)]
@@ -152,7 +155,7 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
         if len(ij_edge) != len(ij_edge_new):
             raise RuntimeError('Could not sort the injection cells. It is needed to add the excluded line surfaces to the next line')
         ij_edge = ij_edge_new
-        
+
         # Testing
         import matplotlib.pyplot as plt
         fig = plt.figure()
@@ -162,10 +165,10 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
         ax.set_xlim((0,nxmax+5))
         ax.set_ylim((0,nymax+5))
         ax.set_title('WARNING:\nThe final line numbering might change if there is\n line binning (joined current lines) and/or\n discarded lines (due to non-convergence and/or tracer cut).\nUse only for testing purposes.\n')
-        for (ll, (i,j)) in enumerate(ij_edge):            
+        for (ll, (i,j)) in enumerate(ij_edge):
             ax.annotate('{},'.format(ll+1), xy = (i, j), xytext = (0, 0), textcoords = 'offset points', size=5)
         fig.savefig('plots/injector.eps', bbox_inches="tight")
-      
+
         # Line surface
         sf0 = []
         for (i,j) in ij_edge:
@@ -223,7 +226,7 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
                             center > cells_per_line*(nlines-3)):
                             print '{:3.0f} {:3.0f} {:3.0f}   {:3.0f}     | '\
                                 '{:6.2f} {:6.2f} {:7.2f} | {:6.2f} {:6.2f} {:6.2f}'\
-                                    .format(ileft, center, iright, iright-ileft+1, 
+                                    .format(ileft, center, iright, iright-ileft+1,
                                             xl[ileft], x[center], xr[iright],
                                             x[center]-xl[ileft], xr[iright]-x[center],
                                             xr[iright]-xl[ileft])
@@ -247,7 +250,7 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
                 iright = nx-1
                 print '{:3.0f} {:3.0f} {:3.0f}   {:3.0f}     | '\
                     '{:6.2f} {:6.2f} {:7.2f} | {:6.2f} {:6.2f} {:6.2f} *NEW LINE'\
-                    .format(ileft, center, iright, iright-ileft+1, 
+                    .format(ileft, center, iright, iright-ileft+1,
                             xl[ileft], x[center], xr[iright],
                             x[center]-xl[ileft], xr[iright]-x[center],
                             xr[iright]-xl[ileft])
@@ -263,10 +266,10 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
 
                 print '{:3.0f} {:3.0f} {:3.0f}   {:3.0f}     | '\
                     '{:6.2f} {:6.2f} {:7.2f} | {:6.2f} {:6.2f} {:6.2f} *CORREC.'\
-                    .format(ileft, center, iright, iright-ileft+1, 
+                    .format(ileft, center, iright, iright-ileft+1,
                             xl[ileft], x[center], xr[iright],
                             x[center]-xl[ileft], xr[iright]-x[center],
-                            xr[iright]-xl[ileft])              
+                            xr[iright]-xl[ileft])
 
             cells_without_line_new = nx-1-iright
             print 'Number of cells not included in any line: {}'\
@@ -294,8 +297,8 @@ def injection(nx, ny, x, y, xp, yp, rin, input_file, nlines, xl, xr):
             ax.set_xlim((0,nxmax+5))
             ax.set_ylim((0,nymax+5))
             if nymax < 10:
-                ax.set_ylim((0,30))                
-            for (ll, (i,j)) in enumerate(ij_edge):            
+                ax.set_ylim((0,30))
+            for (ll, (i,j)) in enumerate(ij_edge):
                 ax.annotate('{},'.format(ll), xy = (i, j), xytext = (0, 0), textcoords = 'offset points', size=3)
             fig.savefig('plots/injector.eps')
 

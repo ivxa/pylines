@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import numpy as np
 import os
 import matplotlib.pyplot as plt
@@ -79,11 +82,11 @@ def tracer_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
 
     from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
     class FixedOrderFormatter(ScalarFormatter):
-        """Formats axis ticks using scientific notation with a constant order of 
+        """Formats axis ticks using scientific notation with a constant order of
         magnitude"""
         def __init__(self, order_of_mag=0, useOffset=True, useMathText=False):
             self._order_of_mag = order_of_mag
-            ScalarFormatter.__init__(self, useOffset=useOffset, 
+            ScalarFormatter.__init__(self, useOffset=useOffset,
                                      useMathText=useMathText)
         def _set_orderOfMagnitude(self, range):
             """Over-riding this to avoid having orderOfMagnitude reset elsewhere"""
@@ -127,18 +130,18 @@ def tracer_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         c += 500*c
         for ll, line in enumerate(all_lines):
             x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
-        
+
             x = np.array(x)
-            y = np.array(y)  
+            y = np.array(y)
             nonzero_sel = np.ones_like(time, dtype=bool)
             for l, t in enumerate(time):
                 if l != 0 and t==0:
                     nonzero_sel[l] = 0
-            if numbering == 1:        
+            if numbering == 1:
                 if (ll+1)%numbering_mod == 0 or ll == 0:
                     ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='b')
             ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
-        
+
         fig.savefig(plots_path+'tracer_map_with_lines.eps',
                     bbox_inches='tight', pad_inches=0.07, dpi=300)
         autocrop_img(plots_path+'tracer_map_with_lines.eps')
@@ -186,7 +189,7 @@ def pressure_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
 
         x = np.array(x)
-        y = np.array(y)  
+        y = np.array(y)
         nonzero_sel = np.ones_like(time, dtype=bool)
         for l, t in enumerate(time):
             if l != 0 and t==0:
@@ -242,7 +245,7 @@ def beta_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
 
         x = np.array(x)
-        y = np.array(y)  
+        y = np.array(y)
         nonzero_sel = np.ones_like(time, dtype=bool)
         for l, t in enumerate(time):
             if l != 0 and t==0:
@@ -298,7 +301,7 @@ def eps_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
 
         x = np.array(x)
-        y = np.array(y)  
+        y = np.array(y)
         nonzero_sel = np.ones_like(time, dtype=bool)
         for l, t in enumerate(time):
             if l != 0 and t==0:
@@ -334,7 +337,7 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
 
     print 'Density map'
 
-    np.seterr(divide='ignore', invalid='ignore')    
+    np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
     if CGS_units == 0:
@@ -400,11 +403,11 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
 
     from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
     class FixedOrderFormatter(ScalarFormatter):
-        """Formats axis ticks using scientific notation with a constant order of 
+        """Formats axis ticks using scientific notation with a constant order of
         magnitude"""
         def __init__(self, order_of_mag=0, useOffset=True, useMathText=False):
             self._order_of_mag = order_of_mag
-            ScalarFormatter.__init__(self, useOffset=useOffset, 
+            ScalarFormatter.__init__(self, useOffset=useOffset,
                                      useMathText=useMathText)
         def _set_orderOfMagnitude(self, range):
             """Over-riding this to avoid having orderOfMagnitude reset elsewhere"""
@@ -449,18 +452,18 @@ def density_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines):
         c += 500*c
         for ll, line in enumerate(all_lines):
             x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
-        
+
             x = np.array(x)
-            y = np.array(y)  
+            y = np.array(y)
             nonzero_sel = np.ones_like(time, dtype=bool)
             for l, t in enumerate(time):
                 if l != 0 and t==0:
                     nonzero_sel[l] = 0
-            if numbering == 1:        
+            if numbering == 1:
                 if (ll+1)%numbering_mod == 0 or ll == 0:
                     ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='w')
             ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
-        
+
         fig.savefig(plots_path+'density_map_with_lines.eps',
                     bbox_inches='tight', pad_inches=0.07, dpi=300)
         autocrop_img(plots_path+'density_map_with_lines.eps')
@@ -488,7 +491,7 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
 
     print 'Doppler Boosting map'
 
-    np.seterr(divide='ignore', invalid='ignore')    
+    np.seterr(divide='ignore', invalid='ignore')
     fig = plt.figure()
     ax = fig.add_subplot(111, aspect='equal')
     if CGS_units == 0:
@@ -510,7 +513,7 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
         if x.max() >= 1.5e15:
             if nick_name == 'brac':
                 if fsuff == '_gamma_times_beta_':
-                    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e-1, vmax=2.5e0),                    
+                    im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e-1, vmax=2.5e0),
                                    cmap=cm.jet, rasterized=True)
                 elif fsuff == '_factor_':
                     im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e0, vmax=4e2),
@@ -527,17 +530,17 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
                 im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=1e-1, vmax=4e0),
                                cmap=cm.jet, rasterized=True)
             elif fsuff == '_factor_':
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=0.95e0, vmax=1.5e3),#5e3            
+                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=0.95e0, vmax=1.5e3),#5e3
                                cmap=cm.jet, rasterized=True)
     else:
         if nick_name == 'steady':
             if fsuff == '_gamma_times_beta_':
                 #im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),                    
+                im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
                                cmap=cm.jet, rasterized=True)
             elif fsuff == '_factor_':
                 im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
-                               cmap=cm.jet, rasterized=True)               
+                               cmap=cm.jet, rasterized=True)
         elif nick_name == 'clump1':
             if fsuff == '_gamma_times_beta_':
                 im = ax.pcolor(xv, yv, z, norm=LogNorm(vmin=z[z!=0].min(), vmax=z.max()),
@@ -604,11 +607,11 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
 
     from matplotlib.ticker import ScalarFormatter, FormatStrFormatter
     class FixedOrderFormatter(ScalarFormatter):
-        """Formats axis ticks using scientific notation with a constant order of 
+        """Formats axis ticks using scientific notation with a constant order of
         magnitude"""
         def __init__(self, order_of_mag=0, useOffset=True, useMathText=False):
             self._order_of_mag = order_of_mag
-            ScalarFormatter.__init__(self, useOffset=useOffset, 
+            ScalarFormatter.__init__(self, useOffset=useOffset,
                                      useMathText=useMathText)
         def _set_orderOfMagnitude(self, range):
             """Over-riding this to avoid having orderOfMagnitude reset elsewhere"""
@@ -654,18 +657,18 @@ def doppler_plot(x, y, z, vx, vy, plots_path, CGS_units, all_lines, fsuff):
         c += 500*c
         for ll, line in enumerate(all_lines):
             x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
-        
+
             x = np.array(x)
-            y = np.array(y)  
+            y = np.array(y)
             nonzero_sel = np.ones_like(time, dtype=bool)
             for l, t in enumerate(time):
                 if l != 0 and t==0:
                     nonzero_sel[l] = 0
-            if numbering == 1:        
+            if numbering == 1:
                 if (ll+1)%numbering_mod == 0 or ll == 0:
                     ax.annotate(str(ll+1), xy=(x[0], y[0]+offset_y), xycoords='data', size=6, color='w')
             ax.plot(x[nonzero_sel], y[nonzero_sel], lw=0.5, color=c[ll])
-        
+
         fig.savefig(plots_path+'doppler_'+fsuff+'map_with_lines.eps',
                     bbox_inches='tight', pad_inches=0.07, dpi=300)
         autocrop_img(plots_path+'doppler_'+fsuff+'map_with_lines.eps')
@@ -698,7 +701,7 @@ def lines_plot(plots_path, all_lines, CGS_units, lx, ly, a):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
 
         x = np.array(x)
-        y = np.array(y)  
+        y = np.array(y)
         i = np.array(i)
         j = np.array(j)
         dens = np.array(dens)
@@ -748,7 +751,7 @@ def profile_plot(plots_path, all_lines, CGS_units):
         x, y, i, j, dens, eps, vx, vy, div, tracer, time = zip(*line)
 
         x = np.array(x)
-        y = np.array(y)  
+        y = np.array(y)
         i = np.array(i)
         j = np.array(j)
         dens = np.array(dens)
@@ -838,7 +841,7 @@ def plots(x, y, dens, eps, vx, vy, div, plots_path, all_lines,
         doppler_plot(x, y, D4, vx, vy, plots_path, CGS_units, all_lines, '_factor_')
         doppler_plot(x, y, g*b, vx, vy, plots_path, CGS_units, all_lines, '_gamma_times_beta_')
 
-      
+
 
     if plot_lines == 1:
         lines_plot(plots_path, all_lines, CGS_units, lx, ly, a)

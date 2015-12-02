@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import numpy as np
 import time
 import interpolation_methods as im
@@ -8,7 +11,7 @@ def buffer_present_line(xc, yc, ic, jc, densc, epsc, vxc, vyc,
                         divc, tracerc, tc, line_values):
     """Keeps track of all the line parameters"""
 
-    line_values.append([xc, yc, ic, jc, densc, epsc, 
+    line_values.append([xc, yc, ic, jc, densc, epsc,
                         vxc, vyc, divc, tracerc, tc])
     return
 
@@ -49,7 +52,7 @@ def save_one_file_per_line(output_file, all_lines, gammaad, c, fB0, tr0,
     surface for each line at the injection point (sf0). The surface
     corresponds to that one perpendicular to the line directon."""
 
-    # Discard the excluded lines from the "sf0_array" and add the excluded 
+    # Discard the excluded lines from the "sf0_array" and add the excluded
     # line surface to the previous line
     #print np.sum(sf0_array[:, 0])
     aux = 1
@@ -60,14 +63,14 @@ def save_one_file_per_line(output_file, all_lines, gammaad, c, fB0, tr0,
             sf0_ind =  (sf0_array[ll,1], sf0_array[ll,2])
             if sf0_ind in excluded_lines:
                 if ll == 0:
-                    sf0[1] += sf0[0]                
+                    sf0[1] += sf0[0]
                 else:
                     sf0[ll-1] += sf0[ll]
                 sf0_array = np.delete(sf0_array, ll, 0)
                 aux = 1
                 break
 
-    #print np.sum(sf0_array[:, 0]), len(sf0_array), len(all_lines) 
+    #print np.sum(sf0_array[:, 0]), len(sf0_array), len(all_lines)
     if len(sf0) != len(all_lines):
         raise RuntimeError('Surface indices do not match with line indices')
 
@@ -85,14 +88,14 @@ def save_one_file_per_line(output_file, all_lines, gammaad, c, fB0, tr0,
                     break
             if aux == 1:
                 if ll == 0:
-                    sf0[1] += sf0[0]                
+                    sf0[1] += sf0[0]
                 else:
                     sf0[ll-1] += sf0[ll]
                 sf0_array = np.delete(sf0_array, ll, 0)
                 del all_lines[ll]
                 break
-    #print np.sum(sf0_array[:, 0]), len(sf0_array), len(all_lines)         
-    #print np.sum(sf0_array[:, 0])/(1e12)**2., len(sf0_array), len(all_lines)         
+    #print np.sum(sf0_array[:, 0]), len(sf0_array), len(all_lines)
+    #print np.sum(sf0_array[:, 0])/(1e12)**2., len(sf0_array), len(all_lines)
     #print 2010612.22971
     if len(sf0) != len(all_lines):
         raise RuntimeError('Surface indices do not match with line indices')
@@ -136,13 +139,13 @@ def save_one_file_per_line(output_file, all_lines, gammaad, c, fB0, tr0,
             # Energy flux equality
             B0 = np.sqrt(fB0*4.*np.pi*(dens[0]*h[0]*c**2.))
             B[nz] = B0*(dens[nz]*v[0]*gamma[0]/dens[0]/v[nz]/gamma[nz])**0.5
-            
+
             fe = np.zeros_like(time)
             fe[nz] = dens[nz]*gamma[nz]**2.*h[nz]*v[nz]#-dens[nz]*gamma[nz]*v[nz]
             sf = np.zeros_like(time)
             sf[nz] = sf0[ll]*fe[0]/fe[nz] # Energy flux conservation
 #            Particle flux conservation
-#            sf[nz] = sf0[ll]*(dens[0]*v[0]*gamma[0]/dens[nz]/v[nz]/gamma[nz]) 
+#            sf[nz] = sf0[ll]*(dens[0]*v[0]*gamma[0]/dens[nz]/v[nz]/gamma[nz])
 
             # Save to file
             line_length = len(time)
@@ -312,8 +315,8 @@ def compute_lines(x, y, xl, yl, xr, yr, vx, vy, dens, eps, tracer,
         xc, yc = initial_position(x[i0], y[j0])
         ic, jc = initial_indices(i0, j0)
         densc, epsc, vxc, vyc, divc, tracerc = initial_variables(dens[ic, jc],
-                                                 eps[ic, jc], vx[ic, jc], 
-                                                 vy[ic, jc], div[ic,jc], 
+                                                 eps[ic, jc], vx[ic, jc],
+                                                 vy[ic, jc], div[ic,jc],
                                                  tracer[ic, jc])
         ic_aux, jc_aux = ic, jc
         buffer_present_line(xc, yc, ic, jc, densc, epsc,
@@ -351,7 +354,7 @@ def compute_lines(x, y, xl, yl, xr, yr, vx, vy, dens, eps, tracer,
             if ite == itemax:
                 print 'WARNING: Line starting at [{}, {}] did not converged. Increase itemax parameter?'.format(i0,j0)
                 excluded_lines += [(i0,j0)]
-                break 
+                break
 
         if ite != itemax:
             buffer_all_lines(all_lines, line_values)

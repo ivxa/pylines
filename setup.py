@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 params = {
     'input_file': 'PULSAR',
     'nick_name': 'steady',

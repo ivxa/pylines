@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import numpy as np
 
 
@@ -28,7 +31,7 @@ def pulsar(i, j, i2, j2, R_b, rho_0a, xp, yp, xs, ys, densty, eps,
         gridly = gridly*R_b
     else:
         print '\nSIMULATED VALUES:'
-        # Convert to CGS units      
+        # Convert to CGS units
         rhowp = densty[i,j]*rho_0a
         uwp = eps[i,j]*c**2
         vwp = np.sqrt(velx[i,j]**2.+vely[i,j]**2.)*c
@@ -77,7 +80,7 @@ def pulsar(i, j, i2, j2, R_b, rho_0a, xp, yp, xs, ys, densty, eps,
     print '\nLsd = {:.1e} [erg/s]'.format(Lsd)
     print 'Mdot (Mo/yr) = {:.3e}'.format(Mdot/1.98855e33*31557600)
     print 'Mdot (g/s) = {:.3e}'.format(Mdot)
-    print 'Mo/yr (g/s) = {:.3e}'.format(1.98855e33/31557600)     
+    print 'Mo/yr (g/s) = {:.3e}'.format(1.98855e33/31557600)
     print 'eta = {:.3f}'.format(eta)
 
     print "\nContact discontinuity measured with respect the pulsar position:"
@@ -174,7 +177,7 @@ def jet(i, j, i2, j2, R_b, rho_0a, xp, yp, xs, ys, densty, eps,
     print '\nLsd = {:.1e} [erg/s]'.format(Lsd)
     print 'Mdot (Mo/yr) = {:.3e}'.format(Mdot/1.98855e33*31557600)
     print 'Mdot (g/s) = {:.3e}'.format(Mdot)
-    print 'Mo/yr (g/s) = {:.3e}'.format(1.98855e33/31557600)     
+    print 'Mo/yr (g/s) = {:.3e}'.format(1.98855e33/31557600)
     print 'eta = {:.3f}'.format(eta)
 
     print "\nContact discontinuity measured with respect the jet position:"
@@ -192,4 +195,3 @@ def jet(i, j, i2, j2, R_b, rho_0a, xp, yp, xs, ys, densty, eps,
     print "\nDistance between the jet and the star:"
     print 'ys-yp (cm) = {:.2e}'.format(ys-yp)
     print 'ys-yp (R_b) = {:.2f}'.format((ys-yp)/R_b)
-

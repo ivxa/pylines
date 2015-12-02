@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import numpy as np
 
 
@@ -73,7 +76,7 @@ def resamp_line(all_lines, resamp, a, CGS_units):
             dxc = xc[i+1]-xc[i]
             dyc = yc[i+1]-yc[i]
             sc_aux += np.sqrt(dxc**2.+dyc**2.)
-            sc += [sc_aux]      
+            sc += [sc_aux]
 
         # Regrouping
         x = []
@@ -96,8 +99,8 @@ def resamp_line(all_lines, resamp, a, CGS_units):
             while l[k] < sc[i_first] <= l[k+1] == False:
                 k += 1
             # Look for the other bin elements
-            for i in range(i_first, len(xc)):                   
-                if l[k] < sc[i] <= l[k+1]: 
+            for i in range(i_first, len(xc)):
+                if l[k] < sc[i] <= l[k+1]:
                     x += [xc[i]]
                     y += [yc[i]]
                     ii += [ic[i]]
@@ -122,10 +125,10 @@ def resamp_line(all_lines, resamp, a, CGS_units):
             vy_new = vy[0]#np.average(vy)
             div_new = div[0]#np.average(div)
             tracer_new = tracer[0]#np.average(tracer)
-            t_new = t[0]#np.average(t)           
+            t_new = t[0]#np.average(t)
             line_values_new.append([x_new, y_new, ii_new, jj_new,
                                     dens_new, eps_new,
-                                    vx_new, vy_new, div_new, 
+                                    vx_new, vy_new, div_new,
                                     tracer_new, t_new])
 
             # Continue with the next bin
@@ -166,10 +169,10 @@ def resamp_line(all_lines, resamp, a, CGS_units):
                 vy_new = vy[0]#np.average(vy)
                 div_new = div[0]#np.average(div)
                 tracer_new = tracer[0]#np.average(tracer)
-                t_new = t[0]#np.average(t)    
+                t_new = t[0]#np.average(t)
                 line_values_new.append([x_new, y_new, ii_new, jj_new,
                                         dens_new, eps_new,
-                                        vx_new, vy_new, div_new, 
+                                        vx_new, vy_new, div_new,
                                         tracer_new, t_new])
                 break
 

@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import os
 import shutil
 import numpy as np
@@ -97,9 +100,9 @@ def make_folder(f):
     if not os.path.exists(f):
         os.makedirs(f)
     else:
-        shutil.rmtree(f)  
+        shutil.rmtree(f)
         os.makedirs(f)
-        
+
 
 def prepare_data(input_file, nlines, testing_rhd):
     """Read the data file given by input_file. Being:
@@ -123,13 +126,13 @@ def prepare_data(input_file, nlines, testing_rhd):
 
     c = 3e10
 
-    (nx, ny, dens, vx, vy, eps, xl, yl, lx, ly, gammaad, rho0, a, xp, 
+    (nx, ny, dens, vx, vy, eps, xl, yl, lx, ly, gammaad, rho0, a, xp,
      yp, rin, rins, tracer, time1,
      rhowp, uwp, vwp, rhowi, uwi, vwi, xs, ys) = rf.read(input_file)
 
-    if testing_rhd == 1:   
+    if testing_rhd == 1:
         print '\nTesting the RHD simulation:'
-        if input_file == 'PULSAR': 
+        if input_file == 'PULSAR':
             (i_sw, j_sw) = (xs*nx/lx+2, ly*ny/ly-2)
             #(i_pw, j_pw) = (xp*nx/lx+2, (yp+rin)*ny/ly+2)
             (i_pw, j_pw) = (xp*nx/lx+2, (yp-rin)*ny/ly-2)

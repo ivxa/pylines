@@ -1,3 +1,6 @@
+# Author: Xavier Paredes-Fortuny (xparedesfortuny@gmail.com)
+# License: MIT, see LICENSE.md
+
 import numpy as np
 
 
@@ -122,4 +125,3 @@ def bilinear_div(xc, yc, ic, jc, x, y, z, nx, ny):
 
     zc = (1.-t)*(1.-u)*z1+t*(1.-u)*z2+t*u*z3+(1.-t)*u*z4
     return zc
-
